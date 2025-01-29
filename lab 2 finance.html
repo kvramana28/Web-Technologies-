@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="FinanceTrackerApp">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal Finance Tracker</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <style>
+      /* Add your styling here */
+      body {
+        font-family: "Roboto", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #e0f7fa; /* Light blue background */
+      }
+      .container {
+        width: 80%;
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      header h1 {
+        font-size: 2rem;
+        color: #00796b; /* Teal color */
+        margin-bottom: 10px;
+      }
+      nav a {
+        color: #00796b;
+        margin: 0 20px;
+        text-decoration: none;
+        font-size: 1.1rem;
+        font-weight: bold;
+      }
+      nav a.active {
+        border-bottom: 2px solid #00796b;
+      }
+      .form-container {
+        margin-top: 20px;
+      }
+      form input,
+      form button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      button {
+        background-color: #00796b;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+        border: none;
+      }
+      button:hover {
+        background-color: #004d40;
+      }
+      .list-container {
+        margin-top: 20px;
+      }
+      .list-container ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      .list-container li {
+        background-color: #f9f9f9;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
+      .summary {
+        margin-top: 20px;
+        font-size: 1.2rem;
+        text-align: center;
+      }
+      .summary p {
+        color: #00796b;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Personal Finance Tracker</h1>
+        <nav>
+          <a href="#!/dashboard" ng-class="{active: isActive('/dashboard')}">Dashboard</a>
+          <a href="#!/expenses" ng-class="{active: isActive('/expenses')}">Expenses</a>
+          <a href="#!/income" ng-class="{active: isActive('/income')}">Income</a>
+        </nav>
+      </header>
+
+      <div ng-view></div>
+      <!-- Content for routes will be inserted here -->
+    </div>
+
+    <script>
+      const app = angular.module("FinanceTrackerApp", ["ngRoute"]);
+
+      app.config(function ($routeProvider) {
+        $routeProvider
+          .when("/dashboard", {
+            template: `
+            <div class="summary">
+              <h2>Dashboard</h2>
+              <p>Income: {{summary.income | currency}}</p>
+              <p>Expenses: {{summary.expenses | currency}}</p>
+              <p>Balance: {{summary.balance | currency}}</p>
+            </div>
+            `,
+            controller: "DashboardController",
+          })
+          .when("/expenses", {
+            template: `
+            <div class="form-container">
+              <h2>Add Expense</h2>
+              <form ng-submit="addExpense()">
+                <input type="text" ng-model="newExpense.name" placeholder="Expense Name" required />
+                <input type="number" ng-model="newExpense.amount" placeholder="Amount" required />
+                <button type="submit">Add Expense</button>
+              </form>
+            </div>
+            <div class="list-container">
+              <h2>Expense List</h2>
+              <ul>
+                <li ng-repeat="expense in expenses">
+                  {{expense.name}} - {{expense.amount | currency}} ({{expense.date | date:'mediumDate'}})
+                </li>
+              </ul>
+            </div>
+            `,
+            controller: "ExpensesController",
+          })
+          .when("/income", {
+            template: `
+            <div class="form-container">
+              <h2>Add Income</h2>
+              <form ng-submit="addIncome()">
+                <input type="text" ng-model="newIncome.source" placeholder="Income Source" required />
+                <input type="number" ng-model="newIncome.amount" placeholder="Amount" required />
+                <button type="submit">Add Income</button>
+              </form>
+            </div>
+            <div class="list-container">
+              <h2>Income List</h2>
+              <ul>
+                <li ng-repeat="income in incomes">
+                  {{income.source}} - {{income.amount | currency}} ({{income.date | date:'mediumDate'}})
+                </li>
+              </ul>
+            </div>
+            `,
+            controller: "IncomeController",
+          })
+          .otherwise({
+            redirectTo: "/dashboard",
+          });
+      });
+
+      app.controller("MainController", function ($scope, $location) {
+        $scope.isActive = function (path) {
+          return $location.path() === path;
+        };
+      });
+
+      app.controller("DashboardController", function ($scope) {
+        $scope.summary = {
+          income: 0,
+          expenses: 0,
+          balance: 0,
+        };
+
+        $scope.updateSummary = function () {
+          $scope.summary.income = 1000; // Example data
+          $scope.summary.expenses = 400; // Example data
+          $scope.summary.balance =
+            $scope.summary.income - $scope.summary.expenses;
+        };
+
+        $scope.updateSummary();
+      });
+
+      app.controller("ExpensesController", function ($scope) {
+        $scope.expenses = [];
+        $scope.newExpense = {};
+
+        $scope.addExpense = function () {
+          if ($scope.newExpense.name && $scope.newExpense.amount) {
+            $scope.expenses.push({
+              name: $scope.newExpense.name,
+              amount: $scope.newExpense.amount,
+              date: new Date(),
+            });
+            $scope.newExpense = {}; // Reset form after adding
+          }
+        };
+      });
+
+      app.controller("IncomeController", function ($scope) {
+        $scope.incomes = [];
+        $scope.newIncome = {};
+
+        $scope.addIncome = function () {
+          if ($scope.newIncome.source && $scope.newIncome.amount) {
+            $scope.incomes.push({
+              source: $scope.newIncome.source,
+              amount: $scope.newIncome.amount,
+              date: new Date(),
+            });
+            $scope.newIncome = {}; // Reset form after adding
+          }
+        };
+      });
+    </script>
+  </body>
+</html>
