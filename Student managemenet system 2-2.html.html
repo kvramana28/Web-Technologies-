@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="studentApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management System</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-animate.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/w3-css/4.1.0/w3.min.css">
+  <style>
+    /* Animations */
+    .ng-enter, .ng-leave {
+      transition: opacity 0.5s ease-in-out;
+    }
+    .ng-enter { opacity: 0; }
+    .ng-enter-active { opacity: 1; }
+    .ng-leave { opacity: 1; }
+    .ng-leave-active { opacity: 0; }
+    .slide-in { animation: slideIn 0.5s ease-in-out; }
+    @keyframes slideIn {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(0); }
+    }
+    .hover-effect:hover { background-color: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div ng-include="'header.html'"></div>
+
+  <!-- Navigation -->
+  <div ng-include="'nav.html'"></div>
+
+  <!-- Main Content -->
+  <div ng-view class="slide-in"></div>
+
+  <!-- Footer -->
+  <div ng-include="'footer.html'"></div>
+
+  <!-- Templates -->
+  <script type="text/ng-template" id="header.html">
+    <header class="w3-container w3-blue">
+      <h1>Student Management System</h1>
+    </header>
+  </script>
+
+  <script type="text/ng-template" id="nav.html">
+    <nav class="w3-bar w3-light-grey">
+      <a href="#!/home" class="w3-bar-item w3-button">Home</a>
+      <a href="#!/students" class="w3-bar-item w3-button">Student List</a>
+      <a href="#!/add-student" class="w3-bar-item w3-button">Add Student</a>
+    </nav>
+  </script>
+
+  <script type="text/ng-template" id="footer.html">
+    <footer class="w3-container w3-blue w3-center">
+      <p>&copy; 2023 Student Management System</p>
+    </footer>
+  </script>
+
+  <script type="text/ng-template" id="home.html">
+    <div class="w3-container">
+      <h2>Welcome to the Student Management System</h2>
+      <p>Manage student records with ease.</p>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="students.html">
+    <div class="w3-container">
+      <h2>Student List</h2>
+      <table class="w3-table w3-striped">
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+        <tr ng-repeat="student in students" class="hover-effect">
+          <td>{{ student.id }}</td>
+          <td>{{ student.name }}</td>
+          <td>{{ student.email }}</td>
+          <td>
+            <button class="w3-button w3-green" ng-click="editStudent(student)">Edit</button>
+            <button class="w3-button w3-red" ng-click="deleteStudent(student.id)">Delete</button>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="add-student.html">
+    <div class="w3-container">
+      <h2>Add/Edit Student</h2>
+      <form ng-submit="saveStudent()" class="w3-container">
+        <label>Name:</label>
+        <input type="text" ng-model="student.name" class="w3-input" required>
+        <label>Email:</label>
+        <input type="email" ng-model="student.email" class="w3-input" required>
+        <button type="submit" class="w3-button w3-blue">Save</button>
+      </form>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="404.html">
+    <div class="w3-container">
+      <h2>404 - Page Not Found</h2>
+      <p>The page you are looking for does not exist.</p>
+    </div>
+  </script>
+
+  <!-- AngularJS Application Script -->
+  <script>
+    angular.module('studentApp', ['ngRoute', 'ngAnimate'])
+      .config(function($routeProvider) {
+        $routeProvider
+          .when('/home', { templateUrl: 'home.html' })
+          .when('/students', { templateUrl: 'students.html', controller: 'StudentController' })
+          .when('/add-student', { templateUrl: 'add-student.html', controller: 'AddStudentController' })
+          .otherwise({ templateUrl: '404.html' });
+      })
+      .service('studentService', function($http) {
+        var students = [
+          { id: 1, name: 'John Doe', email: 'john@example.com' },
+          { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
+        ];
+
+        this.getStudents = function() {
+          return Promise.resolve({ data: students }); // Simulated API call
+        };
+
+        this.addStudent = function(student) {
+          student.id = students.length + 1;
+          students.push(student);
+          return Promise.resolve(); // Simulated API call
+        };
+
+        this.updateStudent = function(student) {
+          var index = students.findIndex(s => s.id === student.id);
+          if (index !== -1) {
+            students[index] = student;
+          }
+          return Promise.resolve(); // Simulated API call
+        };
+
+        this.deleteStudent = function(id) {
+          students = students.filter(student => student.id !== id);
+          return Promise.resolve(); // Simulated API call
+        };
+      })
+      .controller('StudentController', function($scope, studentService) {
+        studentService.getStudents().then(function(response) {
+          $scope.students = response.data;
+        });
+
+        $scope.deleteStudent = function(id) {
+          studentService.deleteStudent(id).then(function() {
+            $scope.students = $scope.students.filter(student => student.id !== id);
+          });
+        };
+
+        $scope.editStudent = function(student) {
+          $scope.student = angular.copy(student);
+          window.location.hash = '/add-student';
+        };
+      })
+      .controller('AddStudentController', function($scope, studentService) {
+        $scope.student = {};
+
+        $scope.saveStudent = function() {
+          if ($scope.student.id) {
+            studentService.updateStudent($scope.student).then(function() {
+              window.location.hash = '/students';
+            });
+          } else {
+            studentService.addStudent($scope.student).then(function() {
+              window.location.hash = '/students';
+            });
+          }
+        };
+      });
+  </script>
+</body>
+</html>
