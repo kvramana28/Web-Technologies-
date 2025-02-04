@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="studentApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-animate.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styling */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #8860D0 0%, #5D3FD3 50%, #4A3267 100%);
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+            min-height: 100vh;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Layout Structure */
+        .app-container {
+            display: flex;
+            flex: 1;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px 0;
+        }
+
+        .sidebar-menu {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu-item {
+            position: relative;
+        }
+
+        .sidebar-menu-link {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Submenu Styling */
+        .submenu {
+            display: none;
+            background: rgba(0, 0, 0, 0.2);
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            width: 200px;
+            z-index: 1000;
+        }
+
+        .sidebar-menu-item:hover .submenu {
+            display: block;
+        }
+
+        .submenu-link {
+            display: block;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .submenu-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        /* Header and Footer */
+        .app-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .app-footer {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Shared Components Styling */
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+        }
+
+        .table th {
+            background: rgba(138, 43, 226, 0.6);
+            padding: 12px;
+            text-align: left;
+        }
+
+        .table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .table tr:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .button {
+            background: rgba(138, 43, 226, 0.7);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            background: rgba(138, 43, 226, 0.9);
+            transform: translateY(-3px);
+        }
+
+        /* Form Styling */
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: white;
+        }
+
+        /* Animations */
+        .ng-enter, .ng-leave {
+            transition: all 0.5s ease-in-out;
+            opacity: 0;
+        }
+        .ng-enter-active {
+            opacity: 1;
+        }
+        .ng-leave-active {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body ng-controller="MainController">
+    <!-- Header -->
+    <header class="app-header">
+        <h1>Student Management System</h1>
+    </header>
+
+    <!-- App Container -->
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="sidebar-menu-item">
+                    <a href="#!/home" class="sidebar-menu-link">
+                        <i class="icon">🏠</i> Home
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#!/students" class="sidebar-menu-link">
+                        <i class="icon">👥</i> Students
+                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="#!/students" class="submenu-link">Student List</a>
+                        </li>
+                        <li>
+                            <a href="#!/add-student" class="submenu-link">Add Student</a>
+                        </li>
+                        <li>
+                            <a href="#!/student-reports" class="submenu-link">Student Reports</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#!/classes" class="sidebar-menu-link">
+                        <i class="icon">📚</i> Classes
+                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="#!/class-list" class="submenu-link">Class List</a>
+                        </li>
+                        <li>
+                            <a href="#!/add-class" class="submenu-link">Add Class</a>
+                        </li>
+                        <li>
+                            <a href="#!/class-schedule" class="submenu-link">Class Schedule</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="#!/settings" class="sidebar-menu-link">
+                        <i class="icon">⚙️</i> Settings
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div ng-view></div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>&copy; 2025 Student Management System</p>
+    </footer>
+
+    <!-- Templates -->
+    <script type="text/ng-template" id="home.html">
+        <div class="container">
+            <h2>Dashboard</h2>
+            <div class="dashboard-stats">
+                <div class="stat-box">
+                    <h3>Total Students</h3>
+                    <p>{{ totalStudents }}</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Active Classes</h3>
+                    <p>{{ totalClasses }}</p>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/ng-template" id="students.html">
+        <div class="container">
+            <h2>Student List</h2>
+            <table class="table">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+                <tr ng-repeat="student in students">
+                    <td>{{ student.id }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>
+                        <button class="button" ng-click="editStudent(student)">Edit</button>
+                        <button class="button" ng-click="deleteStudent(student.id)">Delete</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </script>
+
+    <script type="text/ng-template" id="add-student.html">
+        <div class="container">
+            <h2>Add/Edit Student</h2>
+            <form ng-submit="saveStudent()">
+                <input type="text" ng-model="student.name" class="form-input" placeholder="Name" required>
+                <input type="email" ng-model="student.email" class="form-input" placeholder="Email" required>
+                <button type="submit" class="button">Save Student</button>
+            </form>
+        </div>
+    </script>
+
+    <!-- AngularJS Application Script -->
+    <script>
+        angular.module('studentApp', ['ngRoute', 'ngAnimate'])
+            .config(function($routeProvider) {
+                $routeProvider
+                    .when('/home', { 
+                        templateUrl: 'home.html',
+                        controller: 'HomeController'
+                    })
+                    .when('/students', { 
+                        templateUrl: 'students.html', 
+                        controller: 'StudentController' 
+                    })
+                    .when('/add-student', { 
+                        templateUrl: 'add-student.html', 
+                        controller: 'AddStudentController' 
+                    })
+                    .otherwise({ redirectTo: '/home' });
+            })
+            .controller('MainController', function($scope) {
+                // Main application controller
+            })
+            .controller('HomeController', function($scope, studentService) {
+                $scope.totalStudents = studentService.getStudents().length;
+                $scope.totalClasses = 5; // Placeholder
+            })
+            .service('studentService', function($window) {
+                var students = JSON.parse($window.localStorage.getItem('students')) || [
+                    { id: 1, name: 'John Doe', email: 'john@example.com' },
+                    { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
+                ];
+
+                function saveToLocalStorage() {
+                    $window.localStorage.setItem('students', JSON.stringify(students));
+                }
+
+                saveToLocalStorage();
+
+                return {
+                    getStudents: function() {
+                        return students;
+                    },
+                    addStudent: function(student) {
+                        student.id = students.length > 0 ? 
+                            Math.max(...students.map(s => s.id)) + 1 : 
+                            1;
+                        
+                        students.push(angular.copy(student));
+                        saveToLocalStorage();
+                    },
+                    updateStudent: function(student) {
+                        var index = students.findIndex(s => s.id === student.id);
+                        if (index !== -1) {
+                            students[index] = angular.copy(student);
+                            saveToLocalStorage();
+                        }
+                    },
+                    deleteStudent: function(id) {
+                        students = students.filter(student => student.id !== id);
+                        saveToLocalStorage();
+                    }
+                };
+            })
+            .controller('StudentController', function($scope, studentService, $location) {
+                $scope.students = studentService.getStudents();
+
+                $scope.deleteStudent = function(id) {
+                    studentService.deleteStudent(id);
+                    $scope.students = studentService.getStudents();
+                };
+
+                $scope.editStudent = function(student) {
+                    $scope.student = angular.copy(student);
+                    $location.path('/add-student');
+                };
+            })
+            .controller('AddStudentController', function($scope, $location, studentService) {
+                $scope.student = {};
+
+                $scope.saveStudent = function() {
+                    if ($scope.student.id) {
+                        studentService.updateStudent($scope.student);
+                    } else {
+                        studentService.addStudent($scope.student);
+                    }
+                    $location.path('/students');
+                };
+            });
+    </script>
+</body>
+</html>
